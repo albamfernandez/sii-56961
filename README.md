@@ -4,6 +4,8 @@ Alba Martínez Fernández, matrícula 56961
 Práctica 1: Juego de Tenis
 
 Práctica 2: programa logger que recibe del juego los puntos de cada jugador mediante una tubería con nombre (FIFO). La partida termina cuando un jugador alcanza 3 puntos.
+
+Práctica 3: programa bot que controla la raqueta del jugador 1 comunicándose con el juego mediante un fichero proyectado en memoria.
  
 
 ![UPM](https://img.shields.io/badge/UPM-ETSIDI-red)
