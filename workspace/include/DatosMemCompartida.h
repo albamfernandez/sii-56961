@@ -7,4 +7,7 @@ public:
       Esfera esfera;
       Raqueta raqueta1;
       int accion; //1 arriba, 0 nada, -1 abajo
+            int puntos1;
+      int puntos2;
+      int fin; //1 cuando termina la partida
 };

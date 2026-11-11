@@ -29,8 +29,8 @@ int main(int argc,char* argv[])
 	}
 	close(fd);
 	dat=(DatosMemCompartida*)direccion;
-
-	while(1)
+	
+	while(dat->fin == 0)
 	{
 		usleep(25000);
 		float centro_raqueta = (dat->raqueta1.y1 + dat->raqueta1.y2) / 2;
@@ -41,5 +41,11 @@ int main(int argc,char* argv[])
 		else
 			dat->accion = 0;
 	}
+		printf("Fin de la partida. Jugador 1: %d  Jugador 2: %d\n", dat->puntos1, dat->puntos2);
+	if (dat->puntos1 > dat->puntos2)
+		printf("Gana el bot (jugador 1)\n");
+	else
+		printf("Gana el jugador 2\n");
+	munmap(direccion, sizeof(DatosMemCompartida));
 	return 0;
 }

@@ -158,14 +158,19 @@ void CMundo::OnTimer(int value)
 	}
 		pdatos->esfera = esfera;
 	pdatos->raqueta1 = jugador1;
+		pdatos->puntos1 = puntos1;
+	pdatos->puntos2 = puntos2;
 	if (pdatos->accion == 1)
 		OnKeyboardDown('w', 0, 0);
 	else if (pdatos->accion == -1)
 		OnKeyboardDown('s', 0, 0);
 	else
 		jugador1.velocidad.y = 0;
-		if (puntos1 == 3 || puntos2 == 3)
+			if (puntos1 == 3 || puntos2 == 3)
+	{
+		pdatos->fin = 1;
 		exit(0);
+	}
 
 }
 
@@ -226,4 +231,7 @@ void CMundo::Init()
 	close(fd_mem);
 	pdatos = (DatosMemCompartida*)dir;
 	pdatos->accion = 0;
+		pdatos->puntos1 = 0;
+	pdatos->puntos2 = 0;
+	pdatos->fin = 0;
 }
