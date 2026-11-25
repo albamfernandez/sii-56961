@@ -2,7 +2,7 @@
 //
 //////////////////////////////////////////////////////////////////////
 #include <fstream>
-#include "Mundo.h"
+#include "MundoServidor.h"
 #include "glut.h"
 
 #include <stdlib.h>
@@ -11,7 +11,8 @@
 #include <math.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include <sys/mman.h>
+#include <sys/stat.h>
+#include <pthread.h>
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
@@ -25,8 +26,9 @@ CMundo::CMundo()
 CMundo::~CMundo()
 {
 	close(fd_logger);
-	munmap(pdatos, sizeof(DatosMemCompartida));
-	unlink("/tmp/datosBot");
+	close(fd_coord);
+	unlink("/tmp/FIFO_COORD");
+	close(fd_teclas);
 }
 
 void CMundo::InitGL()
@@ -156,22 +158,18 @@ void CMundo::OnTimer(int value)
 		sprintf(msg, "Jugador 1 marca 1 punto, lleva un total de %d puntos.\n", puntos1);
 		write(fd_logger, msg, strlen(msg));
 	}
-		pdatos->esfera = esfera;
-	pdatos->raqueta1 = jugador1;
-		pdatos->puntos1 = puntos1;
-	pdatos->puntos2 = puntos2;
-	if (pdatos->accion == 1)
-		OnKeyboardDown('w', 0, 0);
-	else if (pdatos->accion == -1)
-		OnKeyboardDown('s', 0, 0);
-	else
-		jugador1.velocidad.y = 0;
-			if (puntos1 == 3 || puntos2 == 3)
-	{
-		pdatos->fin = 1;
-		exit(0);
-	}
 
+	// Enviar el estado del juego al cliente
+	char cad[200];
+	sprintf(cad, "%f %f %f %f %f %f %f %f %f %f %d %d",
+		esfera.centro.x, esfera.centro.y,
+		jugador1.x1, jugador1.y1, jugador1.x2, jugador1.y2,
+		jugador2.x1, jugador2.y1, jugador2.x2, jugador2.y2,
+		puntos1, puntos2);
+	write(fd_coord, cad, sizeof(cad));
+
+	if (puntos1 == 3 || puntos2 == 3)
+		exit(0);
 }
 
 void CMundo::OnKeyboardDown(unsigned char key, int x, int y)
@@ -185,6 +183,35 @@ void CMundo::OnKeyboardDown(unsigned char key, int x, int y)
 	case 'l':jugador2.velocidad.y=-4;break;
 	case 'o':jugador2.velocidad.y=4;break;
 
+	}
+}
+
+void* hilo_comandos(void* d)
+{
+	CMundo* p = (CMundo*) d;
+	p->RecibeComandosJugador();
+	return NULL;
+}
+
+void CMundo::RecibeComandosJugador()
+{
+	while (1)
+	{
+		usleep(10);
+		char cad[100];
+		int n = read(fd_teclas, cad, sizeof(cad));
+		if (n <= 0)
+			break;  // el cliente ha cerrado la tuberia
+		for (int i = 0; i < n; i++)
+		{
+			unsigned char key;
+			sscanf(&cad[i], "%c", &key);
+			if (key == 's') jugador1.velocidad.y = -4;
+			if (key == 'w') jugador1.velocidad.y = 4;
+			if (key == 'l') jugador2.velocidad.y = -4;
+			if (key == 'o') jugador2.velocidad.y = 4;
+			if (key == 'x') jugador1.velocidad.y = 0;
+		}
 	}
 }
 
@@ -218,20 +245,22 @@ void CMundo::Init()
 	jugador2.g=0;
 	jugador2.x1=6;jugador2.y1=-1;
 	jugador2.x2=6;jugador2.y2=1;
-		fd_logger = open("/tmp/FIFO_LOGGER", O_WRONLY);
+
+	fd_logger = open("/tmp/FIFO_LOGGER", O_WRONLY);
 	if (fd_logger < 0)
 		perror("No puede abrirse el FIFO");
-		int fd_mem = open("/tmp/datosBot", O_RDWR | O_CREAT | O_TRUNC, 0666);
-	if (fd_mem < 0)
-		perror("Error al crear el fichero");
-	ftruncate(fd_mem, sizeof(DatosMemCompartida));
-	void* dir = mmap(NULL, sizeof(DatosMemCompartida), PROT_READ | PROT_WRITE, MAP_SHARED, fd_mem, 0);
-	if (dir == MAP_FAILED)
-		perror("Error en la proyeccion mmap");
-	close(fd_mem);
-	pdatos = (DatosMemCompartida*)dir;
-	pdatos->accion = 0;
-		pdatos->puntos1 = 0;
-	pdatos->puntos2 = 0;
-	pdatos->fin = 0;
+
+	// Tuberia de coordenadas servidor -> cliente
+	unlink("/tmp/FIFO_COORD");
+	if (mkfifo("/tmp/FIFO_COORD", 0666) < 0)
+		perror("No puede crearse la FIFO de coordenadas");
+	fd_coord = open("/tmp/FIFO_COORD", O_WRONLY);
+	if (fd_coord < 0)
+		perror("No puede abrirse la FIFO de coordenadas");
+
+	// Tuberia de teclas cliente -> servidor (la crea el cliente)
+	while ((fd_teclas = open("/tmp/FIFO_TECLAS", O_RDONLY)) < 0)
+		usleep(100000);
+
+	pthread_create(&thid1, NULL, hilo_comandos, this);
 }

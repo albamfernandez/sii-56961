@@ -2,19 +2,13 @@
 //
 //////////////////////////////////////////////////////////////////////
 
-#if !defined(AFX_MUNDO_H__9510340A_3D75_485F_93DC_302A43B8039A__INCLUDED_)
-#define AFX_MUNDO_H__9510340A_3D75_485F_93DC_302A43B8039A__INCLUDED_
-
-#include <vector>
-#include "Plano.h"
-
-#if _MSC_VER > 1000
+// MundoServidor.h: interface for the CMundo class (servidor).
 #pragma once
-#endif // _MSC_VER > 1000
-
+#include <vector>
+#include <pthread.h>
+#include "Plano.h"
 #include "Esfera.h"
 #include "Raqueta.h"
-#include "DatosMemCompartida.h"
 
 class CMundo  
 {
@@ -26,7 +20,8 @@ public:
 	void InitGL();	
 	void OnKeyboardDown(unsigned char key, int x, int y);
 	void OnTimer(int value);
-	void OnDraw();	
+	void OnDraw();
+	void RecibeComandosJugador();
 
 	Esfera esfera;
 	std::vector<Plano> paredes;
@@ -37,8 +32,9 @@ public:
 
 	int puntos1;
 	int puntos2;
-	int fd_logger;
-	DatosMemCompartida* pdatos;
-};
 
-#endif // !defined(AFX_MUNDO_H__9510340A_3D75_485F_93DC_302A43B8039A__INCLUDED_)
+	int fd_logger;
+	int fd_coord;
+	int fd_teclas;
+	pthread_t thid1;
+};

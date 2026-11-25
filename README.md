@@ -7,6 +7,7 @@ Práctica 2: programa logger que recibe del juego los puntos de cada jugador med
 
 Práctica 3: programa bot que controla la raqueta del jugador 1 comunicándose con el juego mediante un fichero proyectado en memoria.
  
+Práctica 4: el juego se divide en servidor y cliente comunicados por dos tuberías con nombre. El servidor recibe las teclas del cliente en un hilo independiente.
 
 ![UPM](https://img.shields.io/badge/UPM-ETSIDI-red)
 ![Curso](https://img.shields.io/badge/Curso-2026--2027-blue)
