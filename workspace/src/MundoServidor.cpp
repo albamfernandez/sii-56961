@@ -174,16 +174,7 @@ void CMundo::OnTimer(int value)
 
 void CMundo::OnKeyboardDown(unsigned char key, int x, int y)
 {
-	switch(key)
-	{
-//	case 'a':jugador1.velocidad.x=-1;break;
-//	case 'd':jugador1.velocidad.x=1;break;
-	case 's':jugador1.velocidad.y=-4;break;
-	case 'w':jugador1.velocidad.y=4;break;
-	case 'l':jugador2.velocidad.y=-4;break;
-	case 'o':jugador2.velocidad.y=4;break;
 
-	}
 }
 
 void* hilo_comandos(void* d)
